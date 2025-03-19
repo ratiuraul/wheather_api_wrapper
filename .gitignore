@@ -1,6 +1,4 @@
-./roadmap.txt
-./pyvenv.cfg
-./lib
-./lib64
-./bin
-
+roadmap.txt
+venv/
+.env
+weather_api/__pycache__/
