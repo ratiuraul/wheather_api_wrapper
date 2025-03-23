@@ -2,3 +2,6 @@ roadmap.txt
 venv/
 .env
 weather_api/__pycache__/
+error_handling.txt
+exposed_routes.txt
+log_exceptions .txt
