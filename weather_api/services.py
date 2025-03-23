@@ -1,7 +1,6 @@
 # https://www.visualcrossing.com/resources/documentation/weather-api/timeline-weather-api/#request-endpoints
 import requests
 import os
-import pdb
 from requests.exceptions import HTTPError, Timeout, RequestException, ConnectionError
 import logging
 
@@ -21,14 +20,19 @@ def handle_request_errors(func):
             return response
         except HTTPError as http_error:
             error_logger.error(f"HTTP error: {http_error}")
+            raise http_error
         except ConnectionError as connection_error:
             error_logger.error(f"Connection error: {connection_error}")
+            raise connection_error
         except Timeout as timeout_error:
             error_logger.error(f"Timeout error: {timeout_error}")
+            raise timeout_error
         except RequestException as request_error:
             error_logger.error(f"Request error: {request_error}")
+            raise request_error
         except Exception as e:
             error_logger.error(f"General error: {e}")
+            raise e
     return wrapper
 
 
