@@ -10,5 +10,7 @@ Jinja2==3.1.6
 MarkupSafe==3.0.2
 python-dotenv==1.0.1
 requests==2.32.3
+requests-mock==1.12.1
+unitconvert==1.0.4
 urllib3==2.3.0
 Werkzeug==3.1.3
