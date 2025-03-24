@@ -1,7 +1,11 @@
+"""Unit tests for our services."""
 import unittest
+
 import requests_mock
-from requests.exceptions import HTTPError, Timeout, RequestException, ConnectionError
+from requests.exceptions import HTTPError, RequestException, Timeout
+
 from weather_api.services import BASE_URL, get_weather
+
 # python -m unittest weather_api.tests.test_services
 
 
@@ -10,6 +14,7 @@ class TestGetWeather(unittest.TestCase):
 
     @requests_mock.Mocker()
     def test_get_weather_success(self, mock_request):
+        """Test success case."""
         mock_request.get(f'{BASE_URL}/London/today',
                          status_code=200, text='{"weather": "sunny"}')
 
@@ -20,7 +25,7 @@ class TestGetWeather(unittest.TestCase):
 
     @requests_mock.Mocker()
     def test_get_weather_http_error(self, mock_request):
-
+        """Test HTTPError case."""
         mock_request.get(f'{BASE_URL}/London/today', status_code=500)
 
         with self.assertRaises(HTTPError):
@@ -28,7 +33,7 @@ class TestGetWeather(unittest.TestCase):
 
     @requests_mock.Mocker()
     def test_get_weather_connection_error(self, mock_request):
-
+        """Test Connection Error case."""
         mock_request.get(f'{BASE_URL}/London/today',
                          exc=ConnectionError("Connection error"))
 
@@ -37,6 +42,7 @@ class TestGetWeather(unittest.TestCase):
 
     @requests_mock.Mocker()
     def test_get_weather_timeout_error(self, mock_request):
+        """Test Timeout Exception case."""
         mock_request.get(f'{BASE_URL}/London/today',
                          exc=Timeout("Timeout error"))
 
@@ -45,6 +51,7 @@ class TestGetWeather(unittest.TestCase):
 
     @requests_mock.Mocker()
     def test_get_weather_request_error(self, mock_request):
+        """Test Request Exception case."""
         mock_request.get(f'{BASE_URL}/London/today',
                          exc=RequestException("Request error"))
 
@@ -53,6 +60,7 @@ class TestGetWeather(unittest.TestCase):
 
     @requests_mock.Mocker()
     def test_get_weather_general_exception(self, mock_request):
+        """Test Generic Exception case."""
         mock_request.get(f'{BASE_URL}/London/today',
                          exc=Exception("Some general error"))
 

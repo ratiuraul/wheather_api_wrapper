@@ -1,8 +1,13 @@
+"""
+Define services that are connecting to 3rd party API.
+"""
 # https://www.visualcrossing.com/resources/documentation/weather-api/timeline-weather-api/#request-endpoints
-import requests
-import os
-from requests.exceptions import HTTPError, Timeout, RequestException, ConnectionError
 import logging
+import os
+
+import requests
+from requests.exceptions import (HTTPError, RequestException,
+                                 Timeout)
 
 error_logger = logging.getLogger("Flask Error Logger")
 error_logger.setLevel(logging.ERROR)
@@ -19,19 +24,19 @@ def handle_request_errors(func):
             response.raise_for_status()
             return response
         except HTTPError as http_error:
-            error_logger.error(f"HTTP error: {http_error}")
+            error_logger.error("HTTP error: %s", http_error)
             raise http_error
         except ConnectionError as connection_error:
-            error_logger.error(f"Connection error: {connection_error}")
+            error_logger.error("Connection error: %s", connection_error)
             raise connection_error
         except Timeout as timeout_error:
-            error_logger.error(f"Timeout error: {timeout_error}")
+            error_logger.error("Timeout error: %s", timeout_error)
             raise timeout_error
         except RequestException as request_error:
-            error_logger.error(f"Request error: {request_error}")
+            error_logger.error("Request error: %s", request_error)
             raise request_error
         except Exception as e:
-            error_logger.error(f"General error: {e}")
+            error_logger.error("General error: %s", e)
             raise e
     return wrapper
 
@@ -46,5 +51,5 @@ def get_weather(city):
         "unitGroup": "metric"
 
     }
-    response = requests.get(city_url, params=params)
+    response = requests.get(city_url, params=params, timeout=10)
     return response
