@@ -3,11 +3,11 @@ Define services that are connecting to 3rd party API.
 """
 # https://www.visualcrossing.com/resources/documentation/weather-api/timeline-weather-api/#request-endpoints
 import logging
-import os
+
 
 import requests
 from requests.exceptions import HTTPError, RequestException, Timeout
-
+import os
 error_logger = logging.getLogger("Flask Error Logger")
 error_logger.setLevel(logging.ERROR)
 
