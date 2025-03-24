@@ -6,8 +6,7 @@ import logging
 import os
 
 import requests
-from requests.exceptions import (HTTPError, RequestException,
-                                 Timeout)
+from requests.exceptions import HTTPError, RequestException, Timeout
 
 error_logger = logging.getLogger("Flask Error Logger")
 error_logger.setLevel(logging.ERROR)

@@ -1,0 +1,30 @@
+name: Weather Flask API CI
+
+on:
+  push:
+    branches:
+      -main
+  pull_request:
+    branches:
+      -main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12.3'
+    
+    - name: Run pylint
+      run: |
+        pylint ./weather_api/
+
+    - name: Run unittests
+      run: |
+        python -m unittest weather_api.tests.test_services

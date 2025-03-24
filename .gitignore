@@ -5,3 +5,5 @@ weather_api/__pycache__/
 error_handling.txt
 exposed_routes.txt
 log_exceptions .txt
+exceptions.txt
+weather_api/tests/__pycache__/
