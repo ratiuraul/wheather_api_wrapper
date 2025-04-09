@@ -6,7 +6,7 @@ import json
 
 from flask import Blueprint
 
-from .services import get_weather
+from weather_api.services import get_weather
 
 weather_bp = Blueprint('weather', __name__)
 
@@ -19,4 +19,4 @@ def city_weather(city: str) -> json:
     :returns: json object with weather data
     """
     weather_data = get_weather(city)
-    return weather_data.json()
+    return weather_data
