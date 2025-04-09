@@ -1,3 +1,6 @@
+"""
+Module to integrate 3rd party extensions to our app.
+"""
 from flask_caching import Cache
 from redis import Redis
 

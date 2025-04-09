@@ -11,6 +11,9 @@ load_dotenv()
 
 
 def create_app():
+    """
+    Create flask app.
+    """
     app = Flask(__name__)
     app.logger = error_logger
     # Initialize the cache extension
