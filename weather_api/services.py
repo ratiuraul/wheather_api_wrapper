@@ -1,6 +1,7 @@
 """
 Define services that are connecting to 3rd party API.
 """
+import json
 # https://www.visualcrossing.com/resources/documentation/weather-api/timeline-weather-api/#request-endpoints
 import logging
 import os
@@ -23,10 +24,7 @@ def handle_request_errors(func):
     def wrapper(*args, **kwargs):
         try:
             response = func(*args, **kwargs)
-            if isinstance(response, requests.Response):
-                # in case response is from cache, it will be a dict
-                response.raise_for_status()
-                return response.json()
+            response.raise_for_status()
             return response
         except HTTPError as http_error:
             error_logger.error("HTTP error: %s", http_error)
@@ -52,9 +50,15 @@ def get_weather(city):
     redis_key = f"{city}_{datetime.today().date()}"
 
     cached_data = cache.get(redis_key)
+
     if cached_data:
-        print("Returning from cache")
-        return cached_data
+        print(f"Returning from cache {cached_data}")
+        # Reconstruct a fake response object
+        response = requests.Response()
+        # pylint: disable=protected-access
+        response._content = json.dumps(cached_data).encode('utf-8')
+        response.status_code = 200
+        return response
 
     city_url = BASE_URL + f"/{city}/today"
     params = {
@@ -64,8 +68,18 @@ def get_weather(city):
 
     }
     response = requests.get(city_url, params=params, timeout=10)
-    # set cache data if no Exception
-    # since this is todays weather, it makes sense to cache for 24h
-    cache.set(redis_key, response.json(), timeout=86400)
+    if response.ok:
+        # set cache data if no Exception
+        # since this is todays weather, it makes sense to cache for 24h
+        cache.set(redis_key, response.json(), timeout=86400)
+        print(f"Cached data for {city}")
+    else:
+        # In case of failure, log useful details
+        print(f"Failed to fetch weather for {city}.")
+        print(f"Status Code: {response.status_code}")
+        # This is the error message from the API (if any)
+        print(f"Response Text: {response.text}")
+        # The actual URL that was requested
+        print(f"Request URL: {response.url}")
 
     return response

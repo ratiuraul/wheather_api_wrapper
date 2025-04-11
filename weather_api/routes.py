@@ -18,5 +18,6 @@ def city_weather(city: str) -> json:
     :param city: name of the city to get weather data for
     :returns: json object with weather data
     """
+
     weather_data = get_weather(city)
-    return weather_data
+    return weather_data.json()

@@ -1,9 +1,11 @@
 """Unit tests for our services."""
 import unittest
+from unittest.mock import patch
 
 import requests_mock
 from requests.exceptions import HTTPError, RequestException, Timeout
 
+from weather_api import create_app
 from weather_api.services import BASE_URL, get_weather
 
 # python -m unittest weather_api.tests.test_services
@@ -12,6 +14,21 @@ from weather_api.services import BASE_URL, get_weather
 class TestGetWeather(unittest.TestCase):
     """Test get weather service works properly."""
 
+    def setUp(self):
+        """Set up the Flask app and test client."""
+        self.app = create_app()
+        self.client = self.app.test_client()
+        self.app.config['TESTING'] = True
+
+        # Mock cache.get to always return None (force cache miss)
+        self.patcher_get = patch(
+            'weather_api.services.cache.get', return_value=None)
+        self.patcher_get.start()
+
+    def tearDown(self):
+        """Stop all mocks after each test."""
+        patch.stopall()
+
     @requests_mock.Mocker()
     def test_get_weather_success(self, mock_request):
         """Test success case."""
@@ -19,7 +36,6 @@ class TestGetWeather(unittest.TestCase):
                          status_code=200, text='{"weather": "sunny"}')
 
         result = get_weather('London')
-
         self.assertEqual(result.status_code, 200)
         self.assertIn('weather', result.text)
 
@@ -66,6 +82,19 @@ class TestGetWeather(unittest.TestCase):
 
         with self.assertRaises(Exception):
             get_weather('London')
+
+    @patch('weather_api.services.cache.get', return_value={"weather": "sunny"})
+    @patch('weather_api.services.cache.set')
+    # pylint: disable=unused-argument
+    def test_cache_hit_skips_api_and_set(self, mock_set, mock_get):
+        """
+            Test that in case of cache hit, we are not setting the cache again
+        """
+        response = get_weather("Bucharest")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("weather", response.text)
+        mock_set.assert_not_called()  # Ensure cache.set is not called
 
 
 if __name__ == 'main':
