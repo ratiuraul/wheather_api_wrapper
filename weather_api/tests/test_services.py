@@ -23,7 +23,10 @@ class TestGetWeather(unittest.TestCase):
         # Mock cache.get to always return None (force cache miss)
         self.patcher_get = patch(
             'weather_api.services.cache.get', return_value=None)
+        self.patcher_set = patch(
+            'weather_api.services.cache.set', return_value=True)
         self.patcher_get.start()
+        self.patcher_set.start()
 
     def tearDown(self):
         """Stop all mocks after each test."""
