@@ -32,4 +32,5 @@ jobs:
 
     - name: Run unittests
       run: |
+        export REDIS_URL="redis://mocked:6379"
         python -m unittest weather_api.tests.test_services
