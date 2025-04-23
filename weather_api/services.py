@@ -2,10 +2,10 @@
 Define services that are connecting to 3rd party API.
 """
 import json
-# https://www.visualcrossing.com/resources/documentation/weather-api/timeline-weather-api/#request-endpoints
 import logging
 import os
 from datetime import datetime
+from typing import Optional
 
 import requests
 from requests.exceptions import HTTPError, RequestException, Timeout
@@ -44,13 +44,13 @@ def handle_request_errors(func):
     return wrapper
 
 
-@handle_request_errors
-def get_weather(city):
-    """Fetch weather data from weather.visualcrossing.com"""
-    redis_key = f"{city}_{datetime.today().date()}"
-
+def get_data_from_cache(redis_key: str) -> Optional[requests.Response]:
+    """
+    Try to get cache data for a specific key.
+    param: redis_key: str key name
+    return: None if key is not in cache, value of key otherwise
+    """
     cached_data = cache.get(redis_key)
-
     if cached_data:
         print(f"Returning from cache {cached_data}")
         # Reconstruct a fake response object
@@ -59,6 +59,17 @@ def get_weather(city):
         response._content = json.dumps(cached_data).encode('utf-8')
         response.status_code = 200
         return response
+    return None
+
+
+@handle_request_errors
+def get_weather(city):
+    """Fetch weather data from weather.visualcrossing.com"""
+    redis_key = f"{city}_{datetime.today().date()}"
+
+    cached_data = get_data_from_cache(redis_key)
+    if cached_data:
+        return cached_data
 
     city_url = BASE_URL + f"/{city}/today"
     params = {
@@ -88,6 +99,12 @@ def get_weather(city):
 @handle_request_errors
 def get_forecast(city):
     """Get forecast for the next 15 days for a specific city"""
+    redis_key = f"forecast_{city}_{datetime.today().date()}"
+
+    cached_data = get_data_from_cache(redis_key)
+    if cached_data:
+        return cached_data
+
     forecast_url = BASE_URL + f"/{city}"
     params = {
         "unitGroup": "metric",
@@ -95,4 +112,16 @@ def get_forecast(city):
         "key": API_KEY
     }
     response = requests.get(forecast_url, params=params, timeout=10)
+    if response.ok:
+        # set cache data if no Exception
+        cache.set(redis_key, response.json(), timeout=86400)
+        print(f"Cached forecast data for {city}")
+    else:
+        # In case of failure, log useful details
+        print(f"Failed to fetch weather for {city}.")
+        print(f"Status Code: {response.status_code}")
+        # This is the error message from the API (if any)
+        print(f"Response Text: {response.text}")
+        # The actual URL that was requested
+        print(f"Request URL: {response.url}")
     return response

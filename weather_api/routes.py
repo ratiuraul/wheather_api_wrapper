@@ -50,5 +50,4 @@ def city_forecast(city: str) -> json:
     :returns: json object with weather data
     """
     weather_data = get_forecast(city)
-    # weather_data.raise_for_status()
     return weather_data.json()
