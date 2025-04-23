@@ -83,3 +83,16 @@ def get_weather(city):
         print(f"Request URL: {response.url}")
 
     return response
+
+
+@handle_request_errors
+def get_forecast(city):
+    """Get forecast for the next 15 days for a specific city"""
+    forecast_url = BASE_URL + f"/{city}"
+    params = {
+        "unitGroup": "metric",
+        "include": "fcst",
+        "key": API_KEY
+    }
+    response = requests.get(forecast_url, params=params, timeout=10)
+    return response
