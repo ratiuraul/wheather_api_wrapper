@@ -6,7 +6,7 @@ import requests_mock
 from requests.exceptions import HTTPError, RequestException, Timeout
 
 from weather_api import create_app
-from weather_api.services import BASE_URL, get_weather
+from weather_api.services import BASE_URL, get_forecast, get_weather
 
 # python -m unittest weather_api.tests.test_services
 
@@ -98,6 +98,64 @@ class TestGetWeather(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("weather", response.text)
         mock_set.assert_not_called()  # Ensure cache.set is not called
+
+
+class TestForecast(unittest.TestCase):
+    """Test that get forecast feature works as expected."""
+
+    def setUp(self):
+        """Set up the tests."""
+        # Mock cache.get to always return None (force cache miss)
+        self.patcher_get = patch(
+            'weather_api.services.cache.get', return_value=None)
+        self.patcher_set = patch(
+            'weather_api.services.cache.set', return_value=True)
+        self.patcher_get.start()
+        self.mock_cache_set = self.patcher_set.start()
+
+    def tearDown(self):
+        """Stop all mocks after each test."""
+        patch.stopall()
+
+    @requests_mock.Mocker()
+    def test_get_forecast_succesfull(self, mock_request):
+        """test expected response is returned in case of successfull request"""
+        mock_request.get(f'{BASE_URL}/Madrid',
+                         status_code=200, text='{"address": "Madrid","days": []}')
+
+        response = get_forecast('Madrid')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('days', response.text)
+
+    @requests_mock.Mocker()
+    def test_get_forecast_raises_exception(self, mock_request):
+        """test exception is raised in case of unsuccesfull response."""
+        mock_request.get(f'{BASE_URL}/Madrid', status_code=500)
+        with self.assertRaises(HTTPError):
+            get_forecast('Madrid')
+
+    @patch('weather_api.services.cache.get')
+    @patch('weather_api.services.cache.set')
+    @patch('weather_api.services.requests.get')
+    def test_response_in_cache(self, mock_request_get, mock_set, mock_get):
+        """If response is in cache, request.get and cache.set should not be called."""
+        mock_get.return_value = {"address": "Madrid", "days": []}
+        response = get_forecast('Madrid')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("days", response.text)
+        mock_set.assert_not_called()
+        mock_request_get.assert_not_called()
+
+    @requests_mock.Mocker()
+    def test_response_not_in_cache(self, mock_request):
+        """If response is not in cache, cache_set and requests.get need to be called"""
+        mock_request.get(f'{BASE_URL}/Madrid',
+                         status_code=200, text='{"address": "Madrid","days": []}')
+        response = get_forecast('Madrid')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("days", response.text)
+        self.mock_cache_set.assert_called()
+        assert mock_request.called
 
 
 if __name__ == 'main':
