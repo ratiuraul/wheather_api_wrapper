@@ -7,7 +7,7 @@ from functools import wraps
 from flask import Blueprint, jsonify
 from requests.exceptions import HTTPError
 
-from weather_api.services import get_forecast, get_weather
+from weather_api.services import get_forecast, get_weather, get_forecast_elements
 
 weather_bp = Blueprint('weather', __name__)
 
@@ -50,4 +50,16 @@ def city_forecast(city: str) -> json:
     :returns: json object with weather data
     """
     weather_data = get_forecast(city)
+    return weather_data.json()
+
+
+@weather_bp.route('/forecast-elements/<city>', methods=['GET'])
+def forecast_elements(city: str) -> json:
+    """
+    Call 3rd party api to get forecast for specific elements
+    :param city: name of the city to get wheather data for
+    :returns: json object with weather data
+    """
+    # When no element is passed, all elements are returned
+    weather_data = get_forecast_elements(city)
     return weather_data.json()

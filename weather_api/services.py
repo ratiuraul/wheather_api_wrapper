@@ -6,12 +6,11 @@ import logging
 import os
 from datetime import datetime
 from typing import Optional
-
+from flask import request
 import requests
 from requests.exceptions import HTTPError, RequestException, Timeout
 
 from .extensions import cache
-
 error_logger = logging.getLogger("Flask Error Logger")
 error_logger.setLevel(logging.ERROR)
 
@@ -124,4 +123,30 @@ def get_forecast(city):
         print(f"Response Text: {response.text}")
         # The actual URL that was requested
         print(f"Request URL: {response.url}")
+    return response
+
+
+def get_forecast_elements(city):
+    """Get forecast for specific elements"""
+    elements_list = request.args.getlist('elements')
+    import pdb
+    pdb.set_trace()
+    # if not elements_list:
+    #     elements_param = request.args.get('elements')
+    #     if elements_param:
+    #         elements_list = [elem.strip()
+    #                          for elem in elements_param.split(',')if elem.strip()]
+    elements_list = list(map(str.strip(), elements_list.split(',')))
+    elements_str = ','.join(elements_list)
+    pdb.set_trace()
+
+    forecast_url = BASE_URL + f"/{city}"
+    params = {
+        "unitGroup": "metric",
+        "include": "obs,fcst",
+        "key": API_KEY,
+        "elements": elements_str
+    }
+
+    response = requests.get(forecast_url, params=params, timeout=10)
     return response
