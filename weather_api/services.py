@@ -131,11 +131,7 @@ def get_forecast_elements(city):
     elements_list = request.args.getlist('elements')
     import pdb
     pdb.set_trace()
-    # if not elements_list:
-    #     elements_param = request.args.get('elements')
-    #     if elements_param:
-    #         elements_list = [elem.strip()
-    #                          for elem in elements_param.split(',')if elem.strip()]
+
     elements_list = list(map(str.strip(), elements_list.split(',')))
     elements_str = ','.join(elements_list)
     pdb.set_trace()
