@@ -54,12 +54,12 @@ def city_forecast(city: str) -> json:
 
 
 @weather_bp.route('/forecast-elements/<city>', methods=['GET'])
+@handle_client_errors
 def forecast_elements(city: str) -> json:
     """
     Call 3rd party api to get forecast for specific elements
     :param city: name of the city to get wheather data for
     :returns: json object with weather data
     """
-    # When no element is passed, all elements are returned
     weather_data = get_forecast_elements(city)
     return weather_data.json()

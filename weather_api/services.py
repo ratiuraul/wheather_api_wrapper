@@ -126,16 +126,22 @@ def get_forecast(city):
     return response
 
 
+@handle_request_errors
 def get_forecast_elements(city):
     """Get forecast for specific elements"""
     elements_list = request.args.getlist('elements')
-    import pdb
-    pdb.set_trace()
+    elements = []
 
-    elements_list = list(map(str.strip(), elements_list.split(',')))
-    elements_str = ','.join(elements_list)
-    pdb.set_trace()
+    for item in elements_list:
+        parts = item.split(',')
+        cleaned = [part.strip() for part in parts]
+        elements.extend(cleaned)
 
+    elements_str = ','.join(elements)
+    redis_key = f"{city}+{elements_str}"
+    cached_data = get_data_from_cache(redis_key)
+    if cached_data:
+        return cached_data
     forecast_url = BASE_URL + f"/{city}"
     params = {
         "unitGroup": "metric",
@@ -145,4 +151,13 @@ def get_forecast_elements(city):
     }
 
     response = requests.get(forecast_url, params=params, timeout=10)
+    if response.ok:
+        # set cache data if no Exception
+        cache.set(redis_key, response.json(), timeout=86400)
+        print(f"Cached elements:{elements_str} for {city}")
+    else:
+        print(f"Failed to fetch elements {elements_str} for {city}.")
+        print(f"Status Code: {response.status_code}")
+        print(f"Response Text: {response.text}")
+        print(f"Request URL: {response.url}")
     return response
