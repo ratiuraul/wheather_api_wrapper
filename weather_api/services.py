@@ -6,11 +6,12 @@ import logging
 import os
 from datetime import datetime
 from typing import Optional
-from flask import request
+
 import requests
 from requests.exceptions import HTTPError, RequestException, Timeout
 
 from .extensions import cache
+
 error_logger = logging.getLogger("Flask Error Logger")
 error_logger.setLevel(logging.ERROR)
 
@@ -127,14 +128,13 @@ def get_forecast(city):
 
 
 @handle_request_errors
-def get_forecast_elements(city):
+def get_forecast_elements(city, elements_list):
     """Get forecast for specific elements"""
-    elements_list = request.args.getlist('elements')
     elements = []
 
     for item in elements_list:
         parts = item.split(',')
-        cleaned = [part.strip() for part in parts]
+        cleaned = [part.strip() for part in parts if part.strip()]
         elements.extend(cleaned)
 
     elements_str = ','.join(elements)

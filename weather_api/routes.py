@@ -4,7 +4,7 @@ Define wheater API routes and View Functions
 import json
 from functools import wraps
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from requests.exceptions import HTTPError
 
 from weather_api.services import get_forecast, get_weather, get_forecast_elements
@@ -61,5 +61,6 @@ def forecast_elements(city: str) -> json:
     :param city: name of the city to get wheather data for
     :returns: json object with weather data
     """
-    weather_data = get_forecast_elements(city)
+    elements_list = request.args.getlist('elements')
+    weather_data = get_forecast_elements(city, elements_list)
     return weather_data.json()
